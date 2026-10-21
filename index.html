@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Our Days</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --wine:#3b1f2b; --ink:#2b1b21; --blush:#fbf1ee; --paper:#fffaf8; --rose:#b76e79; --rose-d:#8f4a58;
+  --gold:#c9a86a; --line:#ecd9d4; --muted:#85696f;
+  --serif:'Cormorant Garamond',Georgia,serif; --sans:'Jost',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0}
+body{font-family:var(--sans);font-weight:300;color:var(--ink);background:var(--blush);min-height:100vh;line-height:1.55;
+  background-image:radial-gradient(900px 400px at 85% -5%,#f6d9d6 0,transparent 70%),radial-gradient(700px 400px at -5% 30%,#f3e6d3 0,transparent 70%);background-attachment:fixed}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--rose);outline-offset:2px}
+.wrap{max-width:980px;margin:0 auto;padding:0 20px 80px}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;padding:44px 0 26px;flex-wrap:wrap}
+h1{font-family:var(--serif);font-weight:600;font-size:clamp(2.6rem,7vw,4.2rem);line-height:1;color:var(--wine);letter-spacing:.01em}
+h1 em{font-weight:400;color:var(--rose)}
+.tag{color:var(--muted);margin-top:8px;font-size:.95rem}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid var(--rose);background:transparent;color:var(--rose-d);padding:9px 18px;border-radius:999px;cursor:pointer;font-weight:400;transition:.2s}
+.btn:hover{background:var(--rose);color:#fff}
+.btn.solid{background:var(--wine);border-color:var(--wine);color:#fff}
+.btn.solid:hover{background:var(--rose-d);border-color:var(--rose-d)}
+.btn.sm{padding:5px 12px;font-size:.85rem}
+.status{font-size:.82rem;color:var(--muted);margin-bottom:18px}
+.status b{color:var(--rose-d);font-weight:500}
+
+/* On this day */
+.today{background:var(--wine);color:#f8e9e4;border-radius:22px;padding:26px 30px;margin-bottom:34px;position:relative;overflow:hidden}
+.today::after{content:"♥";position:absolute;right:-14px;top:-40px;font-size:190px;color:#ffffff0d;line-height:1}
+.today h2{font-family:var(--serif);font-weight:400;font-style:italic;font-size:1.7rem;color:var(--gold);margin-bottom:10px}
+.today .item{padding:10px 0;border-top:1px solid #ffffff1f}
+.today .item:first-of-type{border-top:0}
+.today .item b{font-family:var(--serif);font-size:1.35rem;font-weight:600}
+.today p{opacity:.85;margin-top:2px}
+.soon{margin-top:12px;font-size:.9rem;opacity:.8}
+
+h2.sec{font-family:var(--serif);font-weight:600;font-size:1.9rem;color:var(--wine);margin:8px 0 16px;display:flex;align-items:center;gap:14px}
+h2.sec::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--gold),transparent)}
+
+/* Featured */
+.feat{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:18px;margin-bottom:42px}
+.fcard{background:var(--paper);border:1px solid var(--line);border-radius:22px;padding:26px;position:relative;box-shadow:0 18px 40px -26px #8f4a58aa}
+.fcard::before{content:"";position:absolute;inset:8px;border:1px solid var(--gold);border-radius:15px;opacity:.45;pointer-events:none}
+.fcard .big{font-family:var(--serif);font-size:4.4rem;line-height:.9;color:var(--rose);font-weight:600}
+.fcard .unit{font-style:italic;font-family:var(--serif);font-size:1.2rem;color:var(--muted)}
+.fcard h3{font-family:var(--serif);font-size:1.7rem;font-weight:600;margin:14px 0 2px;color:var(--wine);line-height:1.1}
+.meta{color:var(--muted);font-size:.9rem}
+.note{margin-top:10px;font-family:var(--serif);font-style:italic;font-size:1.1rem;color:#5b4047}
+
+/* List */
+.month{font-family:var(--serif);font-style:italic;font-size:1.25rem;color:var(--rose-d);margin:22px 0 6px}
+.row{display:grid;grid-template-columns:64px 1fr auto;gap:16px;align-items:center;padding:14px 16px;background:var(--paper);border:1px solid var(--line);border-radius:16px;margin-bottom:8px}
+.dt{text-align:center;font-family:var(--serif);line-height:1}
+.dt b{display:block;font-size:2rem;color:var(--wine);font-weight:600}
+.dt span{font-size:.95rem;color:var(--rose)}
+.row h3{font-family:var(--serif);font-size:1.3rem;font-weight:600;line-height:1.15}
+.row .note{margin-top:4px;font-size:1rem}
+.right{text-align:right;white-space:nowrap}
+.cd{font-family:var(--serif);font-size:1.15rem;color:var(--rose-d);font-weight:600}
+.tools{display:flex;gap:4px;justify-content:flex-end;margin-top:2px}
+.ic{background:none;border:0;cursor:pointer;color:var(--muted);padding:2px 6px;border-radius:6px;font-size:.85rem}
+.ic:hover{color:var(--rose-d);background:var(--blush)}
+.star{color:var(--gold)}
+.empty{text-align:center;padding:50px 20px;color:var(--muted);font-family:var(--serif);font-size:1.4rem;font-style:italic}
+
+/* Dialog */
+dialog{border:0;border-radius:22px;padding:30px;width:min(480px,92vw);background:var(--paper);box-shadow:0 30px 80px -20px #3b1f2b99;margin:auto}
+dialog::backdrop{background:#3b1f2b88;backdrop-filter:blur(3px)}
+dialog h2{font-family:var(--serif);font-size:1.9rem;color:var(--wine);margin-bottom:16px}
+label{display:block;font-size:.9rem;color:var(--muted);margin:12px 0 4px}
+input[type=text],input[type=date],input[type=email],input[type=password],select,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#fff}
+textarea{resize:vertical;min-height:84px}
+.chk{display:flex;align-items:center;gap:10px;margin-top:16px;color:var(--ink);font-size:1rem}
+.chk input{accent-color:var(--rose);width:18px;height:18px}
+.btns{display:flex;justify-content:flex-end;gap:8px;margin-top:22px}
+.err{color:#b3261e;font-size:.9rem;margin-top:10px}
+#login{max-width:380px;margin:12vh auto 0;text-align:center}
+#login h1{font-size:3.2rem;margin-bottom:8px}
+#login form{background:var(--paper);border:1px solid var(--line);border-radius:22px;padding:24px;margin-top:24px;text-align:left}
+#login .btn{width:100%;margin-top:18px}
+.hide{display:none!important}
+@media(max-width:560px){.row{grid-template-columns:52px 1fr}.right{grid-column:1/-1;text-align:left;display:flex;justify-content:space-between;align-items:center}.today{padding:22px}}
+@media(prefers-reduced-motion:no-preference){.fcard,.row{transition:transform .2s}.fcard:hover,.row:hover{transform:translateY(-2px)}}
+</style>
+</head>
+<body>
+
+<!-- Sign in (cloud mode only) -->
+<div id="login" class="hide">
+  <h1>Our <em>Days</em></h1>
+  <p class="tag">Sign in to open your shared calendar.</p>
+  <form id="loginForm">
+    <label for="em">Email</label><input id="em" type="email" required autocomplete="username">
+    <label for="pw">Password</label><input id="pw" type="password" required autocomplete="current-password">
+    <p class="err" id="loginErr"></p>
+    <button class="btn solid" type="submit">Sign in</button>
+  </form>
+</div>
+
+<div class="wrap hide" id="app">
+  <header>
+    <div>
+      <h1>Our <em>Days</em></h1>
+      <p class="tag" id="todayLabel"></p>
+    </div>
+    <div class="actions">
+      <button class="btn" id="notifyBtn">Turn on reminders</button>
+      <button class="btn" id="outBtn">Sign out</button>
+      <button class="btn solid" id="addBtn">Add a date</button>
+    </div>
+  </header>
+  <p class="status" id="status"></p>
+  <div id="todayBox"></div>
+  <div id="featBox"></div>
+  <div id="listBox"></div>
+</div>
+
+<dialog id="dlg">
+  <form id="form" method="dialog">
+    <h2 id="dlgTitle">Add a date</h2>
+    <label for="f-title">What’s the occasion?</label>
+    <input id="f-title" type="text" required maxlength="60" placeholder="Our wedding day">
+    <label for="f-date">Date</label>
+    <input id="f-date" type="date" required>
+    <label for="f-type">Kind</label>
+    <select id="f-type">
+      <option value="anniversary">Anniversary</option>
+      <option value="birthday">Birthday</option>
+      <option value="milestone">Milestone</option>
+      <option value="memory">Special memory</option>
+      <option value="other">Other</option>
+    </select>
+    <label for="f-note">What happened on this day?</label>
+    <textarea id="f-note" maxlength="600" placeholder="Write the memory you want to be reminded of…"></textarea>
+    <label class="chk"><input type="checkbox" id="f-feat"> Feature this date at the top</label>
+    <div class="btns">
+      <button class="btn" type="button" id="cancelBtn">Cancel</button>
+      <button class="btn solid" type="submit">Save date</button>
+    </div>
+  </form>
+</dialog>
+
+<script type="module">
+/* ============================================================
+   1. PASTE YOUR FIREBASE CONFIG HERE (see setup steps).
+   Leave apiKey empty to try the app locally (saves in this browser only).
+   ============================================================ */
+const FIREBASE_CONFIG = {
+  apiKey: "",
+  authDomain: "",
+  projectId: "",
+  appId: ""
+};
+
+const $ = id => document.getElementById(id);
+const cloud = !!FIREBASE_CONFIG.apiKey;
+let events = [], store, editing = null;
+
+/* ---------- Storage layer ---------- */
+async function initStore(){
+  if(!cloud){
+    const load = () => JSON.parse(localStorage.getItem('ourdays') || '[]');
+    const persist = list => localStorage.setItem('ourdays', JSON.stringify(list));
+    let cb;
+    store = {
+      subscribe(f){ cb = f; cb(load()); },
+      async save(ev){ const l = load(); const i = l.findIndex(x => x.id === ev.id);
+        if(i > -1) l[i] = ev; else l.push(ev); persist(l); cb(l); },
+      async remove(id){ const l = load().filter(x => x.id !== id); persist(l); cb(l); }
+    };
+    $('status').innerHTML = '<b>Local mode.</b> Dates are saved only in this browser until you add your Firebase config.';
+    $('outBtn').classList.add('hide');
+    showApp(); store.subscribe(setEvents); return;
+  }
+  const V = '10.12.2', base = `https://www.gstatic.com/firebasejs/${V}/`;
+  const [{initializeApp}, A, F] = await Promise.all([
+    import(base+'firebase-app.js'), import(base+'firebase-auth.js'), import(base+'firebase-firestore.js')]);
+  const app = initializeApp(FIREBASE_CONFIG), auth = A.getAuth(app), db = F.getFirestore(app);
+  const col = F.collection(db, 'days');
+  store = {
+    subscribe(f){ return F.onSnapshot(col, s => { f(s.docs.map(d => ({...d.data(), id:d.id}))); $('status').innerHTML = '<b>Synced</b> across your devices.'; },
+      e => $('status').textContent = 'Sync problem: ' + e.message); },
+    async save(ev){ const {id, ...data} = ev; await F.setDoc(F.doc(db, 'days', id), data); },
+    async remove(id){ await F.deleteDoc(F.doc(db, 'days', id)); }
+  };
+  $('outBtn').onclick = () => A.signOut(auth);
+  $('loginForm').onsubmit = async e => {
+    e.preventDefault(); $('loginErr').textContent = '';
+    try{ await A.signInWithEmailAndPassword(auth, $('em').value, $('pw').value); }
+    catch{ $('loginErr').textContent = 'Email or password doesn’t match. Check both and try again.'; }
+  };
+  let unsub;
+  A.onAuthStateChanged(auth, u => {
+    if(u){ $('login').classList.add('hide'); showApp(); unsub = store.subscribe(setEvents); }
+    else { if(unsub) unsub(); $('app').classList.add('hide'); $('login').classList.remove('hide'); }
+  });
+}
+const showApp = () => $('app').classList.remove('hide');
+
+/* ---------- Date helpers ---------- */
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const startOfDay = d => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+const parse = s => { const [y,m,d] = s.split('-').map(Number); return {y, m:m-1, d}; };
+const TODAY = startOfDay(new Date());
+function nextOcc(s){
+  const {m,d} = parse(s); let t = new Date(TODAY.getFullYear(), m, d);
+  if(t < TODAY) t = new Date(TODAY.getFullYear()+1, m, d);
+  return t;
+}
+const daysUntil = s => Math.round((nextOcc(s) - TODAY) / 864e5);
+const yearsAt = s => nextOcc(s).getFullYear() - parse(s).y;
+const ord = n => n + ((n%100>=11 && n%100<=13) ? 'th' : ({1:'st',2:'nd',3:'rd'}[n%10] || 'th'));
+const esc = s => String(s||'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const KIND = {anniversary:'Anniversary', birthday:'Birthday', milestone:'Milestone', memory:'Special memory', other:''};
+
+function countdown(s){
+  const n = daysUntil(s);
+  if(n === 0) return 'Today';
+  if(n === 1) return 'Tomorrow';
+  return `in ${n} days`;
+}
+
+/* ---------- Rendering ---------- */
+function setEvents(list){ events = list; render(); }
+
+function render(){
+  $('todayLabel').textContent = TODAY.toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+  const sorted = [...events].sort((a,b) => daysUntil(a.date) - daysUntil(b.date));
+
+  // On this day
+  const same = sorted.filter(e => daysUntil(e.date) === 0);
+  const soon = sorted.filter(e => { const n = daysUntil(e.date); return n > 0 && n <= 7; });
+  let t = '';
+  if(same.length || soon.length){
+    t = '<section class="today" aria-live="polite">';
+    if(same.length){
+      t += '<h2>On this day</h2>' + same.map(e => {
+        const ago = TODAY.getFullYear() - parse(e.date).y;
+        return `<div class="item"><b>${esc(e.title)}</b> <span class="meta" style="color:#f0c9c7">${ago > 0 ? ago + (ago === 1 ? ' year ago' : ' years ago') : 'today'}</span>
+          ${e.note ? `<p>${esc(e.note)}</p>` : ''}</div>`;
+      }).join('');
+    }
+    if(soon.length){
+      t += `<p class="soon">${same.length ? 'Coming up: ' : '<b style="font-family:var(--serif);font-size:1.4rem;color:var(--gold)">Coming up this week</b><br>'}` +
+        soon.map(e => `${esc(e.title)} (${countdown(e.date)})`).join(', ') + '</p>';
+    }
+    t += '</section>';
+  }
+  $('todayBox').innerHTML = t;
+
+  // Featured
+  const feat = sorted.filter(e => e.featured);
+  $('featBox').innerHTML = feat.length ? '<h2 class="sec">Our favourite days</h2><div class="feat">' + feat.map(e => {
+    const n = daysUntil(e.date), y = yearsAt(e.date);
+    const big = n === 0 ? '♥' : n, unit = n === 0 ? 'Today' : (n === 1 ? 'day to go' : 'days to go');
+    return `<article class="fcard">
+      <div class="big">${big}</div><div class="unit">${unit}</div>
+      <h3>${esc(e.title)}</h3>
+      <div class="meta">${parse(e.date).d} ${MONTHS[parse(e.date).m]} ${parse(e.date).y}${y > 0 ? ` · ${ord(y)} ${e.type==='birthday'?'birthday':'year'} next` : ''}</div>
+      ${e.note ? `<p class="note">${esc(e.note)}</p>` : ''}
+      <div class="tools"><button class="ic" data-edit="${e.id}">Edit</button><button class="ic" data-del="${e.id}">Delete</button></div>
+    </article>`;
+  }).join('') + '</div>' : '';
+
+  // All dates grouped by month of next occurrence
+  const rest = sorted;
+  if(!events.length){
+    $('listBox').innerHTML = '<div class="empty">Your story starts here.<br><span style="font-size:1rem;font-family:var(--sans);font-style:normal">Add your first special date to begin.</span></div>';
+    return;
+  }
+  let html = '<h2 class="sec">Every date we keep</h2>', cur = '';
+  rest.forEach(e => {
+    const o = nextOcc(e.date), key = MONTHS[o.getMonth()] + ' ' + o.getFullYear();
+    if(key !== cur){ html += `<div class="month">${key}</div>`; cur = key; }
+    const p = parse(e.date);
+    html += `<div class="row">
+      <div class="dt"><b>${p.d}</b><span>${MONTHS[p.m].slice(0,3)}</span></div>
+      <div><h3>${e.featured ? '<span class="star" title="Featured">★</span> ' : ''}${esc(e.title)}</h3>
+        <div class="meta">${[KIND[e.type], `since ${p.y}`].filter(Boolean).join(', ')}</div>
+        ${e.note ? `<p class="note">${esc(e.note)}</p>` : ''}</div>
+      <div class="right"><div class="cd">${countdown(e.date)}</div>
+        <div class="tools"><button class="ic" data-edit="${e.id}">Edit</button><button class="ic" data-del="${e.id}">Delete</button></div></div>
+    </div>`;
+  });
+  $('listBox').innerHTML = html;
+}
+
+/* ---------- Add / edit ---------- */
+const dlg = $('dlg');
+function openForm(ev){
+  editing = ev || null;
+  $('dlgTitle').textContent = ev ? 'Edit this date' : 'Add a date';
+  $('f-title').value = ev?.title || ''; $('f-date').value = ev?.date || '';
+  $('f-type').value = ev?.type || 'anniversary'; $('f-note').value = ev?.note || '';
+  $('f-feat').checked = !!ev?.featured; dlg.showModal();
+}
+$('addBtn').onclick = () => openForm();
+$('cancelBtn').onclick = () => dlg.close();
+$('form').onsubmit = async e => {
+  e.preventDefault();
+  const ev = { id: editing?.id || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())),
+    title: $('f-title').value.trim(), date: $('f-date').value, type: $('f-type').value,
+    note: $('f-note').value.trim(), featured: $('f-feat').checked };
+  try{ await store.save(ev); dlg.close(); }
+  catch(err){ alert('Couldn’t save: ' + err.message); }
+};
+document.addEventListener('click', async e => {
+  const ed = e.target.dataset?.edit, del = e.target.dataset?.del;
+  if(ed) openForm(events.find(x => x.id === ed));
+  if(del && confirm('Delete this date? This removes it for both of you.')) await store.remove(del);
+});
+
+/* ---------- Reminders ---------- */
+function notifyNow(){
+  if(!('Notification' in window) || Notification.permission !== 'granted') return;
+  events.filter(e => daysUntil(e.date) <= 1).forEach(e => {
+    const n = daysUntil(e.date), key = `n-${e.id}-${TODAY.toDateString()}`;
+    if(localStorage.getItem(key)) return; localStorage.setItem(key, 1);
+    new Notification(n === 0 ? `Today: ${e.title}` : `Tomorrow: ${e.title}`, {body: e.note || 'A day worth celebrating.'});
+  });
+}
+$('notifyBtn').onclick = async () => {
+  if(!('Notification' in window)){ alert('This browser doesn’t support notifications.'); return; }
+  const p = await Notification.requestPermission();
+  $('notifyBtn').textContent = p === 'granted' ? 'Reminders on' : 'Reminders blocked';
+  notifyNow();
+};
+if('Notification' in window && Notification.permission === 'granted') $('notifyBtn').textContent = 'Reminders on';
+window.addEventListener('load', () => setTimeout(notifyNow, 1500));
+
+initStore().catch(err => { document.body.insertAdjacentHTML('afterbegin', `<p class="err" style="padding:20px">Couldn’t start: ${esc(err.message)}</p>`); });
+</script>
+</body>
+</html>
