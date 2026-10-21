@@ -303,7 +303,7 @@ $('cancelBtn').onclick = () => dlg.close();$('form').onsubmit = async e => {
   e.preventDefault();
   const ev = { id: editing?.id || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())),
     title: $('f-title').value.trim(), date: $('f-date').value, type:$('f-type').value,
-    note: $('f-note').value.trim(), featured:$('f-feat'].checked };
+    note: $('f-note').value.trim(), featured:$('f-feat').checked };
   try{ await store.save(ev); dlg.close(); }
   catch(err){ alert('Couldn’t save: ' + err.message); }
 };
