@@ -176,8 +176,7 @@ async function initStore(){
         if(i > -1) l[i] = ev; else l.push(ev); persist(l); cb(l); },
       async remove(id){ const l = load().filter(x => x.id !== id); persist(l); cb(l); }
     };
-    $('status').innerHTML = '<b>Local mode.</b> Dates are saved only in this browser until you add your Firebase config.';
-    $('outBtn').classList.add('hide');
+    $('status').innerHTML = '<b>Local mode.</b> Dates are saved only in this browser until you add your Firebase config.';$('outBtn').classList.add('hide');
     showApp(); store.subscribe(setEvents); return;
   }
   const V = '10.12.2', base = `https://www.gstatic.com/firebasejs/${V}/`;
@@ -191,8 +190,7 @@ async function initStore(){
     async save(ev){ const {id, ...data} = ev; await F.setDoc(F.doc(db, 'days', id), data); },
     async remove(id){ await F.deleteDoc(F.doc(db, 'days', id)); }
   };
-  $('outBtn').onclick = () => A.signOut(auth);
-  $('loginForm').onsubmit = async e => {
+  $('outBtn').onclick = () => A.signOut(auth);$('loginForm').onsubmit = async e => {
     e.preventDefault(); $('loginErr').textContent = '';
     try{ await A.signInWithEmailAndPassword(auth, $('em').value, $('pw').value); }
     catch{ $('loginErr').textContent = 'Email or password doesn’t match. Check both and try again.'; }
@@ -200,7 +198,7 @@ async function initStore(){
   let unsub;
   A.onAuthStateChanged(auth, u => {
     if(u){ $('login').classList.add('hide'); showApp(); unsub = store.subscribe(setEvents); }
-    else { if(unsub) unsub(); $('app').classList.add('hide'); $('login').classList.remove('hide'); }
+    else { if(unsub) unsub(); $('app').classList.add('hide');$('login').classList.remove('hide'); }
   });
 }
 const showApp = () => $('app').classList.remove('hide');
@@ -264,7 +262,7 @@ function render(){
     return `<article class="fcard">
       <div class="big">${big}</div><div class="unit">${unit}</div>
       <h3>${esc(e.title)}</h3>
-      <div class="meta">${parse(e.date).d} ${MONTHS[parse(e.date).m]} ${parse(e.date).y}${y > 0 ? ` · ${ord(y)} ${e.type==='birthday'?'birthday':'year'} next` : ''}</div>
+      <div class="meta">${parse(e.date).d} ${MONTHS[parse(e.date).m]} ${parse(e.date).y}${y > 0 ? ` · ${ord(y)}${e.type==='birthday'?'birthday':'year'} next` : ''}</div>
       ${e.note ? `<p class="note">${esc(e.note)}</p>` : ''}
       <div class="tools"><button class="ic" data-edit="${e.id}">Edit</button><button class="ic" data-del="${e.id}">Delete</button></div>
     </article>`;
@@ -298,17 +296,14 @@ const dlg = $('dlg');
 function openForm(ev){
   editing = ev || null;
   $('dlgTitle').textContent = ev ? 'Edit this date' : 'Add a date';
-  $('f-title').value = ev?.title || ''; $('f-date').value = ev?.date || '';
-  $('f-type').value = ev?.type || 'anniversary'; $('f-note').value = ev?.note || '';
-  $('f-feat').checked = !!ev?.featured; dlg.showModal();
+  $('f-title').value = ev?.title || ''; $('f-date').value = ev?.date \vert{}\vert{} '';$('f-type').value = ev?.type || 'anniversary'; $('f-note').value = ev?.note \vert{}\vert{} '';$('f-feat').checked = !!ev?.featured; dlg.showModal();
 }
 $('addBtn').onclick = () => openForm();
-$('cancelBtn').onclick = () => dlg.close();
-$('form').onsubmit = async e => {
+$('cancelBtn').onclick = () => dlg.close();$('form').onsubmit = async e => {
   e.preventDefault();
   const ev = { id: editing?.id || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())),
-    title: $('f-title').value.trim(), date: $('f-date').value, type: $('f-type').value,
-    note: $('f-note').value.trim(), featured: $('f-feat').checked };
+    title: $('f-title').value.trim(), date: $('f-date').value, type:$('f-type').value,
+    note: $('f-note').value.trim(), featured:$('f-feat'].checked };
   try{ await store.save(ev); dlg.close(); }
   catch(err){ alert('Couldn’t save: ' + err.message); }
 };
