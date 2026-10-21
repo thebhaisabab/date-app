@@ -134,7 +134,7 @@ textarea{resize:vertical;min-height:84px}
     <select id="f-type">
       <option value="anniversary">Anniversary</option>
       <option value="birthday">Birthday</option>
-      <option value="milement">Milestone</option>
+      <option value="milestone">Milestone</option>
       <option value="memory">Special memory</option>
       <option value="other">Other</option>
     </select>
@@ -296,7 +296,10 @@ const dlg = $('dlg');
 function openForm(ev){
   editing = ev || null;
   $('dlgTitle').textContent = ev ? 'Edit this date' : 'Add a date';
-  $('f-title').value = ev?.title || ''; $('f-date').value = ev?.date \vert{}\vert{} '';$('f-type').value = ev?.type || 'anniversary'; $('f-note').value = ev?.note \vert{}\vert{} '';$('f-feat').checked = !!ev?.featured; dlg.showModal();
+  $('f-title').value = ev?.title || '';
+  $('f-date').value = ev?.date \vert{}\vert{} '';$('f-type').value = ev?.type || 'anniversary';
+  $('f-note').value = ev?.note \vert{}\vert{} '';$('f-feat').checked = !!ev?.featured;
+  dlg.showModal();
 }
 $('addBtn').onclick = () => openForm();
 $('cancelBtn').onclick = () => dlg.close();$('form').onsubmit = async e => {
