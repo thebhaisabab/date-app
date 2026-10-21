@@ -93,7 +93,6 @@ textarea{resize:vertical;min-height:84px}
 </head>
 <body>
 
-<!-- Sign in (cloud mode only) -->
 <div id="login" class="hide">
   <h1>Our <em>Days</em></h1>
   <p class="tag">Sign in to open your shared calendar.</p>
@@ -126,7 +125,7 @@ textarea{resize:vertical;min-height:84px}
 <dialog id="dlg">
   <form id="form" method="dialog">
     <h2 id="dlgTitle">Add a date</h2>
-    <label for="f-title">What’s the occasion?</label>
+    <label for="f-title">What is the occasion?</label>
     <input id="f-title" type="text" required maxlength="60" placeholder="Our wedding day">
     <label for="f-date">Date</label>
     <input id="f-date" type="date" required>
@@ -139,7 +138,7 @@ textarea{resize:vertical;min-height:84px}
       <option value="other">Other</option>
     </select>
     <label for="f-note">What happened on this day?</label>
-    <textarea id="f-note" maxlength="600" placeholder="Write the memory you want to be reminded of…"></textarea>
+    <textarea id="f-note" maxlength="600" placeholder="Write the memory..."></textarea>
     <label class="chk"><input type="checkbox" id="f-feat"> Feature this date at the top</label>
     <div class="btns">
       <button class="btn" type="button" id="cancelBtn">Cancel</button>
@@ -149,10 +148,6 @@ textarea{resize:vertical;min-height:84px}
 </dialog>
 
 <script type="module">
-/* ============================================================
-   1. PASTE YOUR FIREBASE CONFIG HERE (see setup steps).
-   Leave apiKey empty to try the app locally (saves in this browser only).
-   ============================================================ */
 const FIREBASE_CONFIG = {
   apiKey: "",
   authDomain: "",
@@ -160,181 +155,278 @@ const FIREBASE_CONFIG = {
   appId: ""
 };
 
-const $ = id => document.getElementById(id);
-const cloud = !!FIREBASE_CONFIG.apiKey;
-let events = [], store, editing = null;
+const $ = function(id) { return document.getElementById(id); };
+const cloud = Boolean(FIREBASE_CONFIG.apiKey);
+var events = [], store = null, editing = null;
 
-/* ---------- Storage layer ---------- */
 async function initStore(){
   if(!cloud){
-    const load = () => JSON.parse(localStorage.getItem('ourdays') || '[]');
-    const persist = list => localStorage.setItem('ourdays', JSON.stringify(list));
-    let cb;
+    const load = function(){ return JSON.parse(localStorage.getItem("ourdays") || "[]"); };
+    const persist = function(list){ localStorage.setItem("ourdays", JSON.stringify(list)); };
+    let cb = null;
     store = {
-      subscribe(f){ cb = f; cb(load()); },
-      async save(ev){ const l = load(); const i = l.findIndex(x => x.id === ev.id);
-        if(i > -1) l[i] = ev; else l.push(ev); persist(l); cb(l); },
-      async remove(id){ const l = load().filter(x => x.id !== id); persist(l); cb(l); }
+      subscribe: function(f){ cb = f; cb(load()); },
+      save: async function(ev){
+        const l = load();
+        const i = l.findIndex(function(x){ return x.id === ev.id; });
+        if(i > -1) { l[i] = ev; } else { l.push(ev); }
+        persist(l); cb(l);
+      },
+      remove: async function(id){
+        const l = load().filter(function(x){ return x.id !== id; });
+        persist(l); cb(l);
+      }
     };
-    $('status').innerHTML = '<b>Local mode.</b> Dates are saved only in this browser until you add your Firebase config.';$('outBtn').classList.add('hide');
-    showApp(); store.subscribe(setEvents); return;
+    $("status").innerHTML = "<b>Local mode.</b> Dates are saved only in this browser until you add your Firebase config.";
+    $("outBtn").classList.add("hide");
+    showApp();
+    store.subscribe(setEvents);
+    return;
   }
-  const V = '10.12.2', base = `https://www.gstatic.com/firebasejs/${V}/`;
-  const [{initializeApp}, A, F] = await Promise.all([
-    import(base+'firebase-app.js'), import(base+'firebase-auth.js'), import(base+'firebase-firestore.js')]);
-  const app = initializeApp(FIREBASE_CONFIG), auth = A.getAuth(app), db = F.getFirestore(app);
-  const col = F.collection(db, 'days');
+  const V = "10.12.2";
+  const base = "https://www.gstatic.com/firebasejs/" + V + "/";
+  const modApp = await import(base + "firebase-app.js");
+  const modAuth = await import(base + "firebase-auth.js");
+  const modDb = await import(base + "firebase-firestore.js");
+  
+  const app = modApp.initializeApp(FIREBASE_CONFIG);
+  const auth = modAuth.getAuth(app);
+  const db = modDb.getFirestore(app);
+  const col = modDb.collection(db, "days");
+
   store = {
-    subscribe(f){ return F.onSnapshot(col, s => { f(s.docs.map(d => ({...d.data(), id:d.id}))); $('status').innerHTML = '<b>Synced</b> across your devices.'; },
-      e => $('status').textContent = 'Sync problem: ' + e.message); },
-    async save(ev){ const {id, ...data} = ev; await F.setDoc(F.doc(db, 'days', id), data); },
-    async remove(id){ await F.deleteDoc(F.doc(db, 'days', id)); }
+    subscribe: function(f){
+      return modDb.onSnapshot(col, function(s){
+        const list = s.docs.map(function(d){
+          return Object.assign({}, d.data(), {id: d.id});
+        });
+        f(list);
+        $("status").innerHTML = "<b>Synced</b> across your devices.";
+      }, function(e){
+        $("status").textContent = "Sync problem: " + e.message;
+      });
+    },
+    save: async function(ev){
+      const id = ev.id;
+      const data = Object.assign({}, ev);
+      delete data.id;
+      await modDb.setDoc(modDb.doc(db, "days", id), data);
+    },
+    remove: async function(id){
+      await modDb.deleteDoc(modDb.doc(db, "days", id));
+    }
   };
-  $('outBtn').onclick = () => A.signOut(auth);$('loginForm').onsubmit = async e => {
-    e.preventDefault(); $('loginErr').textContent = '';
-    try{ await A.signInWithEmailAndPassword(auth, $('em').value, $('pw').value); }
-    catch{ $('loginErr').textContent = 'Email or password doesn’t match. Check both and try again.'; }
+
+  $("outBtn").onclick = function(){ modAuth.signOut(auth); };
+  $("loginForm").onsubmit = async function(e){
+    e.preventDefault();
+    $("loginErr").textContent = "";
+    try {
+      await modAuth.signInWithEmailAndPassword(auth, $("em").value, $("pw").value);
+    } catch(err) {
+      $("loginErr").textContent = "Email or password doesn't match.";
+    }
   };
-  let unsub;
-  A.onAuthStateChanged(auth, u => {
-    if(u){ $('login').classList.add('hide'); showApp(); unsub = store.subscribe(setEvents); }
-    else { if(unsub) unsub(); $('app').classList.add('hide');$('login').classList.remove('hide'); }
+
+  let unsub = null;
+  modAuth.onAuthStateChanged(auth, function(u){
+    if(u){
+      $("login").classList.add("hide");
+      showApp();
+      unsub = store.subscribe(setEvents);
+    } else {
+      if(unsub) unsub();
+      $("app").classList.add("hide");
+      $("login").classList.remove("hide");
+    }
   });
 }
-const showApp = () => $('app').classList.remove('hide');
 
-/* ---------- Date helpers ---------- */
-const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-const startOfDay = d => new Date(d.getFullYear(), d.getMonth(), d.getDate());
-const parse = s => { const [y,m,d] = s.split('-').map(Number); return {y, m:m-1, d}; };
+const showApp = function(){ $("app").classList.remove("hide"); };
+
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const startOfDay = function(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate()); };
+const parseDate = function(s){
+  const parts = s.split("-").map(Number);
+  return {y: parts[0], m: parts[1] - 1, d: parts[2]};
+};
 const TODAY = startOfDay(new Date());
+
 function nextOcc(s){
-  const {m,d} = parse(s); let t = new Date(TODAY.getFullYear(), m, d);
-  if(t < TODAY) t = new Date(TODAY.getFullYear()+1, m, d);
+  const p = parseDate(s);
+  let t = new Date(TODAY.getFullYear(), p.m, p.d);
+  if(t < TODAY) { t = new Date(TODAY.getFullYear() + 1, p.m, p.d); }
   return t;
 }
-const daysUntil = s => Math.round((nextOcc(s) - TODAY) / 864e5);
-const yearsAt = s => nextOcc(s).getFullYear() - parse(s).y;
-const ord = n => n + ((n%100>=11 && n%100<=13) ? 'th' : ({1:'st',2:'nd',3:'rd'}[n%10] || 'th'));
-const esc = s => String(s||'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const KIND = {anniversary:'Anniversary', birthday:'Birthday', milestone:'Milestone', memory:'Special memory', other:''};
+
+const daysUntil = function(s){ return Math.round((nextOcc(s) - TODAY) / 86400000); };
+const yearsAt = function(s){ return nextOcc(s).getFullYear() - parseDate(s).y; };
+const ord = function(n){
+  return n + ((n % 100 >= 11 && n % 100 <= 13) ? "th" : ({1:"st", 2:"nd", 3:"rd"}[n % 10] || "th"));
+};
+const esc = function(s){
+  return String(s || "").replace(/[&<>"]/g, function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];
+  });
+};
+const KIND = {anniversary:"Anniversary", birthday:"Birthday", milestone:"Milestone", memory:"Special memory", other:""};
 
 function countdown(s){
   const n = daysUntil(s);
-  if(n === 0) return 'Today';
-  if(n === 1) return 'Tomorrow';
-  return `in ${n} days`;
+  if(n === 0) return "Today";
+  if(n === 1) return "Tomorrow";
+  return "in " + n + " days";
 }
 
-/* ---------- Rendering ---------- */
 function setEvents(list){ events = list; render(); }
 
 function render(){
-  $('todayLabel').textContent = TODAY.toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
-  const sorted = [...events].sort((a,b) => daysUntil(a.date) - daysUntil(b.date));
+  $("todayLabel").textContent = TODAY.toLocaleDateString("en-GB", {weekday:"long", day:"numeric", month:"long", year:"numeric"});
+  const sorted = [].concat(events).sort(function(a, b){ return daysUntil(a.date) - daysUntil(b.date); });
 
-  // On this day
-  const same = sorted.filter(e => daysUntil(e.date) === 0);
-  const soon = sorted.filter(e => { const n = daysUntil(e.date); return n > 0 && n <= 7; });
-  let t = '';
-  if(same.length || soon.length){
-    t = '<section class="today" aria-live="polite">';
-    if(same.length){
-      t += '<h2>On this day</h2>' + same.map(e => {
-        const ago = TODAY.getFullYear() - parse(e.date).y;
-        return `<div class="item"><b>${esc(e.title)}</b> <span class="meta" style="color:#f0c9c7">${ago > 0 ? ago + (ago === 1 ? ' year ago' : ' years ago') : 'today'}</span>
-          ${e.note ? `<p>${esc(e.note)}</p>` : ''}</div>`;
-      }).join('');
+  const same = sorted.filter(function(e){ return daysUntil(e.date) === 0; });
+  const soon = sorted.filter(function(e){
+    const n = daysUntil(e.date);
+    return n > 0 && n <= 7;
+  });
+
+  let t = "";
+  if(same.length > 0 || soon.length > 0){
+    t = '<section class="today">';
+    if(same.length > 0){
+      t += "<h2>On this day</h2>";
+      same.forEach(function(e){
+        const ago = TODAY.getFullYear() - parseDate(e.date).y;
+        t += '<div class="item"><b>' + esc(e.title) + '</b> <span class="meta" style="color:#f0c9c7">' + (ago > 0 ? ago + (ago === 1 ? " year ago" : " years ago") : "today") + "</span>";
+        if(e.note) { t += "<p>" + esc(e.note) + "</p>"; }
+        t += "</div>";
+      });
     }
-    if(soon.length){
-      t += `<p class="soon">${same.length ? 'Coming up: ' : '<b style="font-family:var(--serif);font-size:1.4rem;color:var(--gold)">Coming up this week</b><br>'}` +
-        soon.map(e => `${esc(e.title)} (${countdown(e.date)})`).join(', ') + '</p>';
+    if(soon.length > 0){
+      t += '<p class="soon">' + (same.length > 0 ? "Coming up: " : '<b style="font-family:var(--serif);font-size:1.4rem;color:var(--gold)">Coming up this week</b><br>');
+      t += soon.map(function(e){ return esc(e.title) + " (" + countdown(e.date) + ")"; }).join(", ") + "</p>";
     }
-    t += '</section>';
+    t += "</section>";
   }
-  $('todayBox').innerHTML = t;
+  $("todayBox").innerHTML = t;
 
-  // Featured
-  const feat = sorted.filter(e => e.featured);
-  $('featBox').innerHTML = feat.length ? '<h2 class="sec">Our favourite days</h2><div class="feat">' + feat.map(e => {
-    const n = daysUntil(e.date), y = yearsAt(e.date);
-    const big = n === 0 ? '♥' : n, unit = n === 0 ? 'Today' : (n === 1 ? 'day to go' : 'days to go');
-    return `<article class="fcard">
-      <div class="big">${big}</div><div class="unit">${unit}</div>
-      <h3>${esc(e.title)}</h3>
-      <div class="meta">${parse(e.date).d} ${MONTHS[parse(e.date).m]} ${parse(e.date).y}${y > 0 ? ` · ${ord(y)}${e.type==='birthday'?'birthday':'year'} next` : ''}</div>
-      ${e.note ? `<p class="note">${esc(e.note)}</p>` : ''}
-      <div class="tools"><button class="ic" data-edit="${e.id}">Edit</button><button class="ic" data-del="${e.id}">Delete</button></div>
-    </article>`;
-  }).join('') + '</div>' : '';
+  const feat = sorted.filter(function(e){ return e.featured; });
+  let featHtml = "";
+  if(feat.length > 0){
+    featHtml = '<h2 class="sec">Our favourite days</h2><div class="feat">';
+    feat.forEach(function(e){
+      const n = daysUntil(e.date);
+      const y = yearsAt(e.date);
+      const big = (n === 0 ? "♥" : n);
+      const unit = (n === 0 ? "Today" : (n === 1 ? "day to go" : "days to go"));
+      featHtml += '<article class="fcard"><div class="big">' + big + '</div><div class="unit">' + unit + '</div><h3>' + esc(e.title) + '</h3>';
+      featHtml += '<div class="meta">' + parseDate(e.date).d + " " + MONTHS[parseDate(e.date).m] + " " + parseDate(e.date).y + (y > 0 ? " · " + ord(y) + " " + (e.type === "birthday" ? "birthday" : "year") + " next" : "") + "</div>";
+      if(e.note){ featHtml += '<p class="note">' + esc(e.note) + "</p>"; }
+      featHtml += '<div class="tools"><button class="ic" data-edit="' + e.id + '">Edit</button><button class="ic" data-del="' + e.id + '">Delete</button></div></article>';
+    });
+    featHtml += "</div>";
+  }
+  $("featBox").innerHTML = featHtml;
 
-  // All dates grouped by month of next occurrence
-  const rest = sorted;
-  if(!events.length){
-    $('listBox').innerHTML = '<div class="empty">Your story starts here.<br><span style="font-size:1rem;font-family:var(--sans);font-style:normal">Add your first special date to begin.</span></div>';
+  if(events.length === 0){
+    $("listBox").innerHTML = '<div class="empty">Your story starts here.<br><span style="font-size:1rem;font-family:var(--sans);font-style:normal">Add your first special date to begin.</span></div>';
     return;
   }
-  let html = '<h2 class="sec">Every date we keep</h2>', cur = '';
-  rest.forEach(e => {
-    const o = nextOcc(e.date), key = MONTHS[o.getMonth()] + ' ' + o.getFullYear();
-    if(key !== cur){ html += `<div class="month">${key}</div>`; cur = key; }
-    const p = parse(e.date);
-    html += `<div class="row">
-      <div class="dt"><b>${p.d}</b><span>${MONTHS[p.m].slice(0,3)}</span></div>
-      <div><h3>${e.featured ? '<span class="star" title="Featured">★</span> ' : ''}${esc(e.title)}</h3>
-        <div class="meta">${[KIND[e.type], `since ${p.y}`].filter(Boolean).join(', ')}</div>
-        ${e.note ? `<p class="note">${esc(e.note)}</p>` : ''}</div>
-      <div class="right"><div class="cd">${countdown(e.date)}</div>
-        <div class="tools"><button class="ic" data-edit="${e.id}">Edit</button><button class="ic" data-del="${e.id}">Delete</button></div></div>
-    </div>`;
+
+  let html = '<h2 class="sec">Every date we keep</h2>';
+  let cur = "";
+  sorted.forEach(function(e){
+    const o = nextOcc(e.date);
+    const key = MONTHS[o.getMonth()] + " " + o.getFullYear();
+    if(key !== cur){
+      html += '<div class="month">' + key + "</div>";
+      cur = key;
+    }
+    const p = parseDate(e.date);
+    html += '<div class="row"><div class="dt"><b>' + p.d + "</b><span>" + MONTHS[p.m].slice(0, 3) + "</span></div>";
+    html += '<div><h3>' + (e.featured ? '<span class="star" title="Featured">★</span> ' : '') + esc(e.title) + '</h3>';
+    html += '<div class="meta">' + [KIND[e.type], "since " + p.y].filter(Boolean).join(", ") + "</div>";
+    if(e.note) { html += '<p class="note">' + esc(e.note) + "</p>"; }
+    html += '</div><div class="right"><div class="cd">' + countdown(e.date) + '</div><div class="tools"><button class="ic" data-edit="' + e.id + '">Edit</button><button class="ic" data-del="' + e.id + '">Delete</button></div></div></div>';
   });
-  $('listBox').innerHTML = html;
+  $("listBox").innerHTML = html;
 }
 
-/* ---------- Add / edit ---------- */
-const dlg = $('dlg');
+const dlg = $("dlg");
 function openForm(ev){
   editing = ev || null;
-  $('dlgTitle').textContent = ev ? 'Edit this date' : 'Add a date';
-  $('f-title').value = ev?.title || '';
-  $('f-date').value = ev?.date \vert{}\vert{} '';$('f-type').value = ev?.type || 'anniversary';
-  $('f-note').value = ev?.note \vert{}\vert{} '';$('f-feat').checked = !!ev?.featured;
+  $("dlgTitle").textContent = ev ? "Edit this date" : "Add a date";
+  $("f-title").value = ev ? ev.title : "";
+  $("f-date").value = ev ? ev.date : "";
+  $("f-type").value = ev ? ev.type : "anniversary";
+  $("f-note").value = ev ? ev.note : "";
+  $("f-feat").checked = ev ? Boolean(ev.featured) : false;
   dlg.showModal();
 }
-$('addBtn').onclick = () => openForm();
-$('cancelBtn').onclick = () => dlg.close();$('form').onsubmit = async e => {
+
+$("addBtn").onclick = function(){ openForm(null); };
+$("cancelBtn").onclick = function(){ dlg.close(); };
+
+$("form").onsubmit = async function(e){
   e.preventDefault();
-  const ev = { id: editing?.id || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())),
-    title: $('f-title').value.trim(), date: $('f-date').value, type:$('f-type').value,
-    note: $('f-note').value.trim(), featured:$('f-feat').checked };
-  try{ await store.save(ev); dlg.close(); }
-  catch(err){ alert('Couldn’t save: ' + err.message); }
+  const ev = {
+    id: (editing && editing.id) ? editing.id : String(Date.now()),
+    title: $("f-title").value.trim(),
+    date: $("f-date").value,
+    type: $("f-type").value,
+    note: $("f-note").value.trim(),
+    featured: $("f-feat").checked
+  };
+  try {
+    await store.save(ev);
+    dlg.close();
+  } catch(err) {
+    alert("Could not save: " + err.message);
+  }
 };
-document.addEventListener('click', async e => {
-  const ed = e.target.dataset?.edit, del = e.target.dataset?.del;
-  if(ed) openForm(events.find(x => x.id === ed));
-  if(del && confirm('Delete this date? This removes it for both of you.')) await store.remove(del);
+
+document.addEventListener("click", async function(e){
+  const ed = e.target.getAttribute("data-edit");
+  const del = e.target.getAttribute("data-del");
+  if(ed){
+    const item = events.find(function(x){ return x.id === ed; });
+    if(item) openForm(item);
+  }
+  if(del){
+    if(confirm("Delete this date? This removes it for both of you.")){
+      await store.remove(del);
+    }
+  }
 });
 
-/* ---------- Reminders ---------- */
 function notifyNow(){
-  if(!('Notification' in window) || Notification.permission !== 'granted') return;
-  events.filter(e => daysUntil(e.date) <= 1).forEach(e => {
-    const n = daysUntil(e.date), key = `n-${e.id}-${TODAY.toDateString()}`;
-    if(localStorage.getItem(key)) return; localStorage.setItem(key, 1);
-    new Notification(n === 0 ? `Today: ${e.title}` : `Tomorrow: ${e.title}`, {body: e.note || 'A day worth celebrating.'});
+  if(!("Notification" in window) || Notification.permission !== "granted") return;
+  events.forEach(function(e){
+    const n = daysUntil(e.date);
+    if(n <= 1){
+      const key = "n-" + e.id + "-" + TODAY.toDateString();
+      if(localStorage.getItem(key)) return;
+      localStorage.setItem(key, "1");
+      new Notification(n === 0 ? "Today: " + e.title : "Tomorrow: " + e.title, {body: e.note || "A day worth celebrating."});
+    }
   });
 }
-$('notifyBtn').onclick = async () => {
-  if(!('Notification' in window)){ alert('This browser doesn’t support notifications.'); return; }
+
+$("notifyBtn").onclick = async function(){
+  if(!("Notification" in window)){ alert("This browser does not support notifications."); return; }
   const p = await Notification.requestPermission();
-  $('notifyBtn').textContent = p === 'granted' ? 'Reminders on' : 'Reminders blocked';
+  $("notifyBtn").textContent = (p === "granted" ? "Reminders on" : "Reminders blocked");
   notifyNow();
 };
-if('Notification' in window && Notification.permission === 'granted') $('notifyBtn').textContent = 'Reminders on';
-window.addEventListener('load', () => setTimeout(notifyNow, 1500));
 
-initStore().catch(err => { document.body.insertAdjacentHTML('afterbegin', `<p class="err" style="padding:20px">Couldn’t start: ${esc(err.message)}</p>`); });
+if("Notification" in window && Notification.permission === "granted") {
+  $("notifyBtn").textContent = "Reminders on";
+}
+window.addEventListener("load", function(){ setTimeout(notifyNow, 1500); });
+
+initStore().catch(function(err){
+  document.body.insertAdjacentHTML("afterbegin", '<p class="err" style="padding:20px">Could not start: ' + esc(err.message) + '</p>');
+});
 </script>
 </body>
 </html>
